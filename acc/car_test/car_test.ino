@@ -54,14 +54,14 @@ void acc_setup(QwiicKX134* kxAccel, int idx) {
   // Main accelerometer --> default address
   if (idx == 1){
     if( !kxAccel->begin() ){
-      Serial.println("Could not communicate with the the KX13X. Freezing.");
+      Serial.println("Could not communicate with the the KX134_Main. Freezing.");
       while(1);
     }
   }
   // Ref accelerometer --> Alternative address
   else {
     if( !kxAccel->begin(KX13X_ALT_ADDRESS) ){
-      Serial.println("Could not communicate with the the KX13X. Freezing.");
+      Serial.println("Could not communicate with the the KX134_Ref. Freezing.");
       while(1);
     }
   }
@@ -103,19 +103,6 @@ ISR(TIMER4_COMPA_vect){
   myData_ref = read_acc_data(&kxAccel_ref);
   
   print_data(&myData_main, &myData_ref);
-//  Serial.print(myData_main.xData, 4);
-//  Serial.print(',');
-//  Serial.print(myData_main.yData, 4);
-//  Serial.print(',');
-//  Serial.print(myData_main.zData, 4);
-//  Serial.println(',');
-
-//  Serial.print(myData_ref.xData, 4);
-//  Serial.print(',');
-//  Serial.print(myData_ref.yData, 4);
-//  Serial.print(',');
-//  Serial.print(myData_ref.zData, 4);
-//  Serial.println(',');
 }
  
 void loop(){
