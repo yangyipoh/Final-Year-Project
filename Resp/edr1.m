@@ -125,7 +125,7 @@ if data_type==0 %matlab
     if  isempty(gain_ecg)
         gain_ecg=1;
     end
-    disp('signal'),signal,
+%     disp('signal'),signal,
     ECGm=signal*gain_ecg;
     if isempty(r_peaks)
         error('R peaks locations not provided')
