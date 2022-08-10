@@ -3,6 +3,9 @@ clear all; close all; clc;
 load('test_data.mat')% Data contains ECG (ECG), r-peak locations (R) and RR intervals (RR),
 addpath('otherfunctions')
 
+range = max(ECG(:)) - min(ECG(:));
+ecg = (ecg - min(ecg(:))) / range;
+
 % EDR code slightly modified from Physionet:
 EDR_physionet=edr1(0,ECG,R,fs);
 % R-peak ramp method:

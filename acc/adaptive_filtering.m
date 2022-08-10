@@ -105,6 +105,7 @@ breathing = filter(b, a, breathing);
 
 delay = 5.0;
 breathing = breathing(round(delay*fs):end);
+% breathing = smoothdata(breathing, 2, 'gaussian', 25);
 
 t = 1:size(filtered_acc, 1);
 t = t/10;

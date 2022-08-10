@@ -293,7 +293,7 @@ function[pqoff, jpoff]=boundaries(sample, baseline, tqrs, fs)
 % estimate the noise level
 sb=sample(1:length(baseline))-baseline;
 nlest=mean(abs(sb));
-display(['The estimated noise level is ' num2str(nlest) ' microvolts']);
+% display(['The estimated noise level is ' num2str(nlest) ' microvolts']);
 dlthresh=2*nlest;
 dlthmax=1200;
 dlthmin=140;
