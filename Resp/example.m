@@ -10,7 +10,7 @@ EDR_ramp=Rpeak_EDR(ECG,R,fs);
 % K-PCA method:
 % EDR_KPCA=KPCA_EDR(ECG,R,fs);
 % Respiratory sinus arrhythmia (RSA)
-% EDR_RSA=RSA_resp(ECG,R,fs);
+EDR_RSA=RSA_resp(ECG,R,fs);
 
 
 % RESULTS:

@@ -2,7 +2,7 @@ clear all; close all; clc;
 
 addpath("data\test1\");
 addpath("functions\");
-addpath('edrfunctions\')
+addpath('otherfunctions')
 
 %% Read data
 data = readmatrix('test6.txt');
@@ -22,21 +22,21 @@ data_main = data_main';
 data_main = smoothdata(data_main, 1, 'gaussian', 25);
 data_ref = smoothdata(data_ref, 1, 'gaussian', 25);
 
-% figure(4)
-% subplot(3, 1, 1)
-% plot(data_main(:, 1))
-% hold on
-% plot(data_ref(:, 1))
-% 
-% subplot(3, 1, 2)
-% plot(data_main(:, 2))
-% hold on
-% plot(data_ref(:, 2))
-% 
-% subplot(3, 1, 3)
-% plot(data_main(:, 3))
-% hold on
-% plot(data_ref(:, 3))
+figure(4)
+subplot(3, 1, 1)
+plot(data_main(:, 1))
+hold on
+plot(data_ref(:, 1))
+
+subplot(3, 1, 2)
+plot(data_main(:, 2))
+hold on
+plot(data_ref(:, 2))
+
+subplot(3, 1, 3)
+plot(data_main(:, 3))
+hold on
+plot(data_ref(:, 3))
 
 % RLS adaptive filtering
 [n, ~] = size(data_main);
@@ -85,8 +85,8 @@ filtered_acc_ds = downsample(filtered_acc_lp, factor);
 fs = fs/factor;
 
 
-tm_movement = 0.05;
-filtered_acc_ds(abs(filtered_acc_ds) > tm_movement) = NaN;
+tm = 0.05;
+filtered_acc_ds(abs(filtered_acc_ds) > tm) = NaN;
 
 linear_acc = filtered_acc_ds;
 
@@ -107,12 +107,12 @@ breathing = breathing(round(delay*fs):end);
 %% EDR
 
 data = edfread('test6.EDF');
-fs_edr = 1000;
+fs = 1000;
 ecg = cell2mat(data.ECG);
-ecg = ecg(19.11*fs_edr:61*fs_edr);
+ecg = ecg(19.11*fs:61*fs);
 
 tm = 1:length(ecg);
-tm = tm/fs_edr;
+tm = tm/fs;
 
 range = max(ecg(:)) - min(ecg(:));
 ecg = (ecg - min(ecg(:))) / range;
@@ -127,7 +127,7 @@ qrspeaks = qrspeaks';
 % hold on
 % plot(locs,qrspeaks,'ro')
 
-EDR_ramp=Rpeak_EDR(ecg,locs,fs_edr);
+EDR_ramp=Rpeak_EDR(ecg,locs,fs);
 
 %% Plot
 
@@ -138,27 +138,27 @@ sgtitle('Raw data')
 subplot(3, 1, 1)
 plot(t, filtered_acc(:, 1))
 title('x axis')
-ylim([-tm_movement tm_movement])
+ylim([-tm tm])
 subplot(3, 1, 2)
 plot(t, filtered_acc(:, 2))
 title('y axis')
-ylim([-tm_movement tm_movement])
+ylim([-tm tm])
 subplot(3, 1, 3)
 plot(t, filtered_acc(:, 3))
 title('z axis')
-ylim([-tm_movement tm_movement])
+ylim([-tm tm])
 
 t = 1:length(breathing);
 t = t/fs;
 figure(2)
 subplot(2, 1, 1)
-plot(t, -breathing)
+plot(t, breathing)
 title('Accelerometer')
 xlim([0 30])
 
-subplot(2, 1, 2)
+sub
 plot(EDR_ramp(:,1),EDR_ramp(:,2),'k'),
-title('EDR-RAMP')
+legend('physionet EDR','EDR-RAMP')
 xlim([0 30])
 
 figure(3)
