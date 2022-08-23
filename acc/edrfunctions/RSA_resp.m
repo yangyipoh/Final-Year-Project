@@ -40,6 +40,7 @@ mRR=diff(mR);
 %mRR=Adaptivepreproc(mRR,0.5);
 % Interpolation 10 HZ
 B1=interp1(mR(1:length(mRR)),mRR,1:1000/10:length(ECG),'cubic');
+B1 = fillmissing(B1, 'linear');
 % band-pass filtered 0.1–0.45 Hz by a least-square FIR filter (fall-off:60 dB)
 f = [0 .9*W(1) W(1) W(2) 1.1*W(2) 5]/5;
 a = [0 0 1 1 0 0] ;

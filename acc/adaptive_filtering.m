@@ -5,12 +5,14 @@ addpath("functions\");
 addpath('edrfunctions\')
 
 %% Read data
-data = readmatrix('test6.txt');
+data = readmatrix('test7.txt');
 data_main = data(:, 1:3);
 data_ref = data(:, 4:6);
 fs = 50;
 
 %% Processing
+data_main = data_main(1:end-200, :);
+data_ref = data_ref(1:end-200, :);
 % align axis
 [n, ~] = size(data_main);
 [rot_matrix, t] = calib_rotation(data_main', data_ref');
@@ -58,7 +60,7 @@ for i = 1:3
 %     [y,e] = apf(data_ref(:, i), data_main(:, i));
     
 %     lam = 0.995;
-%     del = 1;
+%     del = 1.2;
 %     alf = dsp.AdaptiveLatticeFilter('Length', 32, ...
 %     'ForgettingFactor', lam, 'InitialPredictionErrorPower', del);
 %     [y,e] = alf(data_ref(:, i), data_main(:, i));
@@ -95,7 +97,7 @@ breathing = coeff(:, 1)'*linear_acc';
 breathing = fillmissing(breathing, "spline");
 
 order = 5;
-wn = 0.5;
+wn = 0.28;
 wn = wn/(fs/2);
 [b, a] = butter(order, wn, 'low');
 breathing = filter(b, a, breathing);
@@ -104,12 +106,24 @@ delay = 5.0;
 breathing = breathing(round(delay*fs):end);
 % breathing = smoothdata(breathing, 2, 'gaussian', 25);
 
+%% Wavelet decomposition
+
+% decompose signal using discrete wavelet transform
+
+% spectrogram(breathing, 64, [], [], fs, 'yaxis');
+[WT, F] = cwt(breathing, fs);
+breathing = icwt(WT, [], F, [0.16 0.30], 'SignalMean', mean(breathing));
+
+
+
 %% EDR
 
-data = edfread('test6.EDF');
+data = edfread('test7.EDF');
 fs_edr = 1000;
 ecg = cell2mat(data.ECG);
-ecg = ecg(19.11*fs_edr:61*fs_edr);
+start_idx = 24500;
+end_idx = length(ecg)-5000;
+ecg = ecg(start_idx:end_idx);
 
 tm = 1:length(ecg);
 tm = tm/fs_edr;
@@ -127,27 +141,29 @@ qrspeaks = qrspeaks';
 % hold on
 % plot(locs,qrspeaks,'ro')
 
-EDR_ramp=Rpeak_EDR(ecg,locs,fs_edr);
+% EDR_ramp=Rpeak_EDR(ecg,locs,fs_edr);
+EDR_KPCA=KPCA_EDR(ecg,locs,fs_edr);
+% EDR_RSA=RSA_resp(ecg,locs,fs_edr);
 
 %% Plot
 
-t = 1:size(filtered_acc, 1);
-t = t/10;
-figure(1)
-sgtitle('Raw data')
-subplot(3, 1, 1)
-plot(t, filtered_acc(:, 1))
-title('x axis')
-ylim([-tm_movement tm_movement])
-subplot(3, 1, 2)
-plot(t, filtered_acc(:, 2))
-title('y axis')
-ylim([-tm_movement tm_movement])
-subplot(3, 1, 3)
-plot(t, filtered_acc(:, 3))
-title('z axis')
-ylim([-tm_movement tm_movement])
-
+% t = 1:size(filtered_acc, 1);
+% t = t/50;
+% figure(1)
+% sgtitle('Raw data')
+% subplot(3, 1, 1)
+% plot(t, filtered_acc(:, 1))
+% title('x axis')
+% ylim([-tm_movement tm_movement])
+% subplot(3, 1, 2)
+% plot(t, filtered_acc(:, 2))
+% title('y axis')
+% ylim([-tm_movement tm_movement])
+% subplot(3, 1, 3)
+% plot(t, filtered_acc(:, 3))
+% title('z axis')
+% ylim([-tm_movement tm_movement])
+% 
 t = 1:length(breathing);
 t = t/fs;
 figure(2)
@@ -157,21 +173,26 @@ title('Accelerometer')
 xlim([0 30])
 
 subplot(2, 1, 2)
-plot(EDR_ramp(:,1),EDR_ramp(:,2),'k'),
-title('EDR-RAMP')
+% plot(EDR_ramp(:,1),EDR_ramp(:,2),'k'),
+hold on
+plot(EDR_KPCA(:,1),100*EDR_KPCA(:,2),'r'),
+% plot(EDR_RSA(:,1),100*EDR_RSA(:,2),'m'),
+% legend('EDR-RAMP','EDR-KPCA','RSA'),
+legend('EDR-KPCA'),
+title('EDR')
 xlim([0 30])
 
 figure(3)
-[S,F,T] = stft(breathing,fs,'Window',hamming(128,'periodic'),'OverlapLength',100,'FrequencyRange','onesided');
+[S,F,T] = stft(breathing,fs,'Window',hamming(256,'periodic'),'OverlapLength',240,'FrequencyRange','onesided');
 waterfall(F,T,abs(S(:,:,1))')
 xlim([0 3])
 title('STFT')
 
 %% Calculate breathing rate
-% S_mag = abs(S);
-% S_mag(1, :) = 0;
-% [~, idx] = max(S_mag, [], 1);
-% for i = 1:length(idx)
-%     fprintf('Time: %.2fs, Breathing rate: %.2f bpm\n', T(i), 60*F(idx(i)))
-% end
+S_mag = abs(S);
+S_mag(1, :) = 0;
+[~, idx] = max(S_mag, [], 1);
+for i = 1:length(idx)
+    fprintf('Time: %.2fs, Breathing rate: %.2f bpm\n', T(i), 60*F(idx(i)))
+end
 
