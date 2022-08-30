@@ -1,14 +1,15 @@
-clear all; close all; clc;
+clear; close all; clc;
 
-addpath("data\test1\");
-addpath("functions\");
-addpath('edrfunctions\')
+%% Add external path
+addpath("Data\test1\");     % select trial
+addpath("functions\");      % adaptive filtering functions (NMF mostly)
+addpath('edrfunctions\');   % ECG derived respiration functions
 
 %% Read data
 data = readmatrix('test7.txt');
 data_main = data(:, 1:3);
 data_ref = data(:, 4:6);
-fs = 50;
+fs_resp = 50;
 
 %% Processing
 data_main = data_main(1:end-200, :);
@@ -67,7 +68,7 @@ for i = 1:3
     
     mu = 0.008;
     wn = 2.0;
-    wn = wn/(fs/2);
+    wn = wn/(fs_resp/2);
     b  = fir1(5,wn);
     fxlms = dsp.FilteredXLMSFilter(32, 'StepSize', mu, 'LeakageFactor', ...
      1, 'SecondaryPathCoefficients', b);
@@ -79,12 +80,12 @@ end
 % downsample to 10 Hz
 order = 10;
 wn = 2.0;
-wn = wn/(fs/2);
+wn = wn/(fs_resp/2);
 [b, a] = butter(order, wn, 'low');
 filtered_acc_lp = filter(b, a, filtered_acc, [], 1);
 factor = 5;
 filtered_acc_ds = downsample(filtered_acc_lp, factor);
-fs = fs/factor;
+fs_resp = fs_resp/factor;
 
 
 tm_movement = 0.05;
@@ -98,12 +99,12 @@ breathing = fillmissing(breathing, "spline");
 
 order = 5;
 wn = 0.28;
-wn = wn/(fs/2);
+wn = wn/(fs_resp/2);
 [b, a] = butter(order, wn, 'low');
 breathing = filter(b, a, breathing);
 
 delay = 5.0;
-breathing = breathing(round(delay*fs):end);
+breathing = breathing(round(delay*fs_resp):end);
 % breathing = smoothdata(breathing, 2, 'gaussian', 25);
 
 %% Wavelet decomposition
@@ -111,9 +112,8 @@ breathing = breathing(round(delay*fs):end);
 % decompose signal using discrete wavelet transform
 
 % spectrogram(breathing, 64, [], [], fs, 'yaxis');
-[WT, F] = cwt(breathing, fs);
+[WT, F] = cwt(breathing, fs_resp);
 breathing = icwt(WT, [], F, [0.16 0.30], 'SignalMean', mean(breathing));
-
 
 
 %% EDR
@@ -165,7 +165,7 @@ EDR_KPCA=KPCA_EDR(ecg,locs,fs_edr);
 % ylim([-tm_movement tm_movement])
 % 
 t = 1:length(breathing);
-t = t/fs;
+t = t/fs_resp;
 figure(2)
 subplot(2, 1, 1)
 plot(t, -breathing)
@@ -183,7 +183,7 @@ title('EDR')
 xlim([0 30])
 
 figure(3)
-[S,F,T] = stft(breathing,fs,'Window',hamming(256,'periodic'),'OverlapLength',240,'FrequencyRange','onesided');
+[S,F,T] = stft(breathing,fs_resp,'Window',hamming(256,'periodic'),'OverlapLength',240,'FrequencyRange','onesided');
 waterfall(F,T,abs(S(:,:,1))')
 xlim([0 3])
 title('STFT')
