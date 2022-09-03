@@ -1,7 +1,7 @@
 clear; close all; clc;
 
 trial = 2;
-test = 1;
+test = 9;
 
 %% Add external path
 addpath(sprintf("Data\\test%d\\", trial));     % select trial
@@ -11,17 +11,27 @@ addpath('edrfunctions\');   % ECG derived respiration functions
 %% ACCELEROMETER -- Read data
 fname = sprintf("test%d.txt", test);
 data = readmatrix(fname);
-data_main = data(:, 1:3);
-data_ref = data(:, 4:6);
 fs_resp = 50;
 
+order = 4;
+wn = 1.0;
+wn = wn/(fs_resp/2);
+[b, a] = butter(order, wn, 'low');
+data = filter(b, a, data, [], 1);
+data = data(30:end, :);
+
+% downsample
+factor = 5;
+data = downsample(data, factor);
+fs_resp = fs_resp/factor;
+
+data_main = data(:, 1:3);
+data_ref = data(:, 4:6);
+
 %% Processing
-% truncate the first and last data
-data_main = data_main(100:end-100, :);
-data_ref = data_ref(100:end-100, :);
 
 % analyse first 20 seconds
-offset = 25*50;
+% offset = 25*50;
 % data_main = data_main((1+offset):(50*30+offset), :);
 % data_ref = data_ref((1+offset):(50*30+offset), :);
 
@@ -32,8 +42,8 @@ data_main = (rot_matrix*data_main') + repmat(t, 1, n);
 data_main = data_main';
 
 % smooth data
-data_main = smoothdata(data_main, 1, 'gaussian', 25);
-data_ref = smoothdata(data_ref, 1, 'gaussian', 25);
+% data_main = smoothdata(data_main, 1, 'gaussian', 10);
+% data_ref = smoothdata(data_ref, 1, 'gaussian', 10);
 
 %% adaptive filtering
 [n, ~] = size(data_main);
@@ -54,48 +64,52 @@ for i = 1:3
 %         'InitialOffsetCovariance',offset);
 %     [y,e] = apf(data_ref(:, i), data_main(:, i));
     
-%     lam = 0.995;
-%     del = 1.2;
-%     alf = dsp.AdaptiveLatticeFilter('Length', 32, ...
-%     'ForgettingFactor', lam, 'InitialPredictionErrorPower', del);
-%     [y,e] = alf(data_ref(:, i), data_main(:, i));
+    lam = 0.995;
+    del = 1.2;
+    alf = dsp.AdaptiveLatticeFilter('Length', 32, ...
+    'ForgettingFactor', lam, 'InitialPredictionErrorPower', del);
+    [y,e] = alf(data_ref(:, i), data_main(:, i));
     
-    mu = 0.008;
-    wn = 2.0;
-    wn = wn/(fs_resp/2);
-    b  = fir1(5,wn);
-    fxlms = dsp.FilteredXLMSFilter(32, 'StepSize', mu, 'LeakageFactor', ...
-     1, 'SecondaryPathCoefficients', b);
-    [y,e] = fxlms(data_ref(:, i), data_main(:, i));
+%     mu = 0.008;
+%     wn = 2.0;
+%     wn = wn/(fs_resp/2);
+%     b  = fir1(5,wn);
+%     fxlms = dsp.FilteredXLMSFilter(32, 'StepSize', mu, 'LeakageFactor', ...
+%      1, 'SecondaryPathCoefficients', b);
+%     [y,e] = fxlms(data_ref(:, i), data_main(:, i));
 
     filtered_acc(:, i) = e;
+%     filtered_acc(:, i) = data_main(:, i);
 end
 
-% downsample to 10 Hz
-order = 10;
-wn = 2.0;
-wn = wn/(fs_resp/2);
-[b, a] = butter(order, wn, 'low');
-filtered_acc_lp = filter(b, a, filtered_acc, [], 1);
-factor = 5;
-filtered_acc_ds = downsample(filtered_acc_lp, factor);
-fs_resp = fs_resp/factor;
+gx = 0;
+gy = 0;
+gz = 0;
+alpha = 0.8;
+linear_acc = zeros(size(filtered_acc));
+for i = 1:size(linear_acc, 1)
+    gx = alpha*gx + (1-alpha)*filtered_acc(i, 1);
+    gy = alpha*gy + (1-alpha)*filtered_acc(i, 2);
+    gz = alpha*gz + (1-alpha)*filtered_acc(i, 3);
 
-
-tm_movement = 0.03;
-filtered_acc_ds(abs(filtered_acc_ds) > tm_movement) = NaN;
-
-linear_acc = filtered_acc_ds;
+    linear_acc(i, 1) = filtered_acc(i, 1) - gx;
+    linear_acc(i, 2) = filtered_acc(i, 2) - gy;
+    linear_acc(i, 3) = filtered_acc(i, 3) - gz;
+end
+% linear_acc_plot = linear_acc;
+linear_acc = filtered_acc(20:end, :);
+% tm_movement = 0.08;
+% linear_acc(abs(linear_acc) > tm_movement) = NaN;
 
 coeff = pca(linear_acc);
 breathing = coeff(:, 1)'*linear_acc';
 breathing = fillmissing(breathing, "linear");
 
-order = 5;
-wn = 0.28;
-wn = wn/(fs_resp/2);
-[b, a] = butter(order, wn, 'low');
-breathing = filter(b, a, breathing);
+% order = 5;
+% wn = 0.28;
+% wn = wn/(fs_resp/2);
+% [b, a] = butter(order, wn, 'low');
+% breathing = filter(b, a, breathing);
 
 % delay = 1.0;
 % breathing = breathing(round(delay*fs_resp):end);
@@ -104,9 +118,9 @@ breathing = filter(b, a, breathing);
 
 % decompose signal using discrete wavelet transform
 [WT, F] = cwt(breathing, fs_resp);
-breathing = icwt(WT, [], F, [0.16 0.30], 'SignalMean', mean(breathing));
+breathing = icwt(WT, [], F, [0.1 0.5], 'SignalMean', mean(breathing));
 
-
+breathing = [ones(1, 19)*breathing(1) breathing];
 %% EDR
 fname = sprintf("test%d.EDF", test);
 data = edfread(fname);
@@ -116,8 +130,18 @@ ecg = cell2mat(data.ECG);
 % end_idx = 59198;
 % start_idx = 4753;  % second
 % end_idx = 51036;
-start_idx = 13941;
-end_idx = 83699;   % first
+% start_idx = 13941;
+% end_idx = 83699;   % first
+% start_idx = 4787;
+% end_idx = 30296;   % fifth
+% start_idx = 9511;
+% end_idx = 53829;    % six
+% start_idx = 26344;
+% end_idx = 67287;   % seven
+% start_idx = 9671;
+% end_idx = 45727;    % eight
+start_idx = 57416;
+end_idx = 108080;    % nine
 ecg = ecg(start_idx:end_idx);
 
 [WT, F] = cwt(ecg, fs_edr);
@@ -161,35 +185,35 @@ plot(data_main(:, 3))
 hold on
 plot(data_ref(:, 3))
 
-t = 1:size(filtered_acc, 1);
+t = 1:size(linear_acc, 1);
 t = t/50;
 figure(3)
 sgtitle('Raw data')
 subplot(3, 1, 1)
-plot(t, filtered_acc(:, 1))
+plot(t, linear_acc(:, 1))
 title('x axis')
 % ylim([-tm_movement tm_movement])
 subplot(3, 1, 2)
-plot(t, filtered_acc(:, 2))
+plot(t, linear_acc(:, 2))
 title('y axis')
 % ylim([-tm_movement tm_movement])
 subplot(3, 1, 3)
-plot(t, filtered_acc(:, 3))
+plot(t, linear_acc(:, 3))
 title('z axis')
 % ylim([-tm_movement tm_movement])
 % 
 t = 1:length(breathing);
 t = t/fs_resp;
 figure(4)
-subplot(2, 1, 1)
-plot(t, breathing)
+yyaxis left
+plot(t, -breathing)
 title('Accelerometer')
-xlim([0 30])
+% xlim([0 30])
 
-subplot(2, 1, 2)
+yyaxis right
 plot(EDR_RSA(:,1),EDR_RSA(:,2),'r'), hold on
 plot(EDR_KPCA(:,1),2*EDR_KPCA(:,2),'k')
-legend('EDR-RSA', 'EDR-KPCA')
+legend('Accelerometer', 'EDR-RSA', 'EDR-KPCA')
 title('EDR')
 xlim([0 30])
 
@@ -203,7 +227,7 @@ title('STFT')
 S_mag = abs(S);
 S_mag(1, :) = 0;
 [~, idx] = max(S_mag, [], 1);
-for i = 1:length(idx)-1
+for i = 1:length(idx)
     fprintf('Time: %.2fs, Breathing rate: %.2f bpm\n', T(i), 60*F(idx(i)))
 end
 

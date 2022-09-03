@@ -3,19 +3,20 @@ clear all; close all; clc;
 addpath('Data\test2\')
 addpath('edrfunctions')
 
-data = edfread('test1.EDF');
+data = edfread('test9.EDF');
 fs = 1000;
 ecg = cell2mat(data.ECG);
 
 %%
-start_idx = 13941;
-end_idx = 83699;
+start_idx = 57416;
+end_idx = 108080;
 % start_idx = 1;
 % end_idx = length(ecg);
 ecg = ecg(start_idx:end_idx);
 
 [WT, F] = cwt(ecg, fs);
 ecg_filt = icwt(WT, [], F, [0.5 150], 'SignalMean', mean(ecg));
+% ecg_filt = ecg;
 
 % ecg = detrend(ecg, 6);
 
@@ -39,7 +40,7 @@ xlim([0, 10])
 
 %% EDR
 % EDR_physionet=edr1(0,ecg_filt,locs,fs);
-EDR_ramp=Rpeak_EDR(ecg_filt,locs,fs);
+% EDR_ramp=Rpeak_EDR(ecg_filt,locs,fs);
 EDR_RSA=RSA_resp(ecg_filt,locs,fs);
 EDR_KPCA=KPCA_EDR(ecg_filt,locs,fs);
 

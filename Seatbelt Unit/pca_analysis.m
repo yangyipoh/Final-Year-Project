@@ -1,9 +1,9 @@
-clear variables, close all; clc;
+clear all, close all; clc;
 
 %% read data
-acc = readmatrix('testsim4.csv');
+acc = readmatrix('test9.txt');
 fs = 50;
-
+acc = acc(:, 1:3);
 %% Preprocessing
 % Downsample to 10 Hz (factor = 5)
 % lp filter
