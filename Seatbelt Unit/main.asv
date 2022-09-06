@@ -1,7 +1,7 @@
 clear; close all; clc;
 
 trial = 3;
-test = 5;
+test = 3;
 
 %% Add external path
 addpath(sprintf("Data\\test%d\\", trial));     % select trial
@@ -98,7 +98,7 @@ end
 % end
 % linear_acc_plot = linear_acc;
 linear_acc = filtered_acc(20:end, :);
-tm_movement = 0.12;
+tm_movement = 0.08;
 linear_acc(abs(linear_acc) > tm_movement) = NaN;
 
 coeff = pca(linear_acc);
@@ -118,7 +118,7 @@ breathing = fillmissing(breathing, "linear");
 
 % decompose signal using discrete wavelet transform
 [WT, F] = cwt(breathing, fs_resp);
-breathing = icwt(WT, [], F, [0.17 0.6], 'SignalMean', mean(breathing));
+breathing = icwt(WT, [], F, [0.17 0.5], 'SignalMean', mean(breathing));
 
 breathing = [ones(1, 19)*breathing(1) breathing];
 %% EDR
@@ -148,12 +148,8 @@ ecg = cell2mat(data.ECG);
 % end_idx = 60931;    % one
 % start_idx = 9697;
 % end_idx = 56987;   % two
-% start_idx = 5104;
-% end_idx = 55905;   % three
-% start_idx = 8825;
-% end_idx = 54677;   % four
-start_idx = 14136;
-end_idx = 124579;   %five
+start_idx = 5104;
+end_idx = 55905;   % three
 ecg = ecg(start_idx:end_idx);
 
 [WT, F] = cwt(ecg, fs_edr);
@@ -171,7 +167,7 @@ ecg = (ecg - min(ecg(:))) / range;
 qrspeaks = qrspeaks';
 
 % EDR_ramp=Rpeak_EDR(ecg,locs,fs_edr);
-% EDR_KPCA=KPCA_EDR(ecg,locs,fs_edr);
+EDR_KPCA=KPCA_EDR(ecg,locs,fs_edr);
 EDR_RSA=RSA_resp(ecg,locs,fs_edr);
 
 %% Plot
@@ -198,7 +194,7 @@ hold on
 plot(data_ref(:, 3))
 
 t = 1:size(linear_acc, 1);
-t = t/10;
+t = t/50;
 figure(3)
 sgtitle('Raw data')
 subplot(3, 1, 1)
@@ -224,7 +220,7 @@ title('Accelerometer')
 
 yyaxis right
 plot(EDR_RSA(:,1),EDR_RSA(:,2),'r'), hold on
-% plot(EDR_KPCA(:,1),2*EDR_KPCA(:,2),'k')
+plot(EDR_KPCA(:,1),2*EDR_KPCA(:,2),'k')
 legend('Accelerometer', 'EDR-RSA', 'EDR-KPCA')
 title('EDR')
 xlim([0 30])
