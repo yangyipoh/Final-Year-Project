@@ -1,7 +1,36 @@
 clear; close all; clc;
 
 trial = 3;
-test = 5;
+test = 4;
+
+% start_idx = 3132;  % third
+% end_idx = 59198;
+% start_idx = 4753;  % second
+% end_idx = 51036;
+% start_idx = 13941;
+% end_idx = 83699;   % first
+% start_idx = 4787;
+% end_idx = 30296;   % fifth
+% start_idx = 9511;
+% end_idx = 53829;    % six
+% start_idx = 26344;
+% end_idx = 67287;   % seven
+% start_idx = 9671;
+% end_idx = 45727;    % eight
+% start_idx = 57416;
+% end_idx = 108080;    % nine
+% start_idx = 15646;
+% end_idx = 49280;    % one
+% start_idx = 13794;
+% end_idx = 60931;    % one
+% start_idx = 9697;
+% end_idx = 56987;   % two
+% start_idx = 5104;
+% end_idx = 55905;   % three
+start_idx = 8825;
+end_idx = 54677;   % four
+% start_idx = 14136;
+% end_idx = 124579;   %five
 
 %% Add external path
 addpath(sprintf("Data\\test%d\\", trial));     % select trial
@@ -52,9 +81,9 @@ filtered_acc = zeros(n, 3);
 for i = 1:3
 %     e = data_main(:, i) - data_ref(:, i);
 
-%     weight_L = 10;
-%     RLS = dsp.RLSFilter('Length', weight_L, 'Method','Conventional RLS');
-%     [y, e] = RLS(data_ref(:, i),data_main(:, i));
+    weight_L = 10;
+    RLS = dsp.RLSFilter('Length', weight_L, 'Method','Conventional RLS');
+    [y, e] = RLS(data_ref(:, i),data_main(:, i));
 
 %     mu = 0.07;                    % Step size
 %     po = 8;                      % Projection order
@@ -70,35 +99,41 @@ for i = 1:3
 %     'ForgettingFactor', lam, 'InitialPredictionErrorPower', del);
 %     [y,e] = alf(data_ref(:, i), data_main(:, i));
     
-    mu = 0.008;
-    wn = 2.0;
-    wn = wn/(fs_resp/2);
-    b  = fir1(5,wn);
-    fxlms = dsp.FilteredXLMSFilter(32, 'StepSize', mu, 'LeakageFactor', ...
-     1, 'SecondaryPathCoefficients', b);
-    [y,e] = fxlms(data_ref(:, i), data_main(:, i));
+%     mu = 0.008;
+%     wn = 2.0;
+%     wn = wn/(fs_resp/2);
+%     b  = fir1(5,wn);
+%     fxlms = dsp.FilteredXLMSFilter(32, 'StepSize', mu, 'LeakageFactor', ...
+%      1, 'SecondaryPathCoefficients', b);
+%     [y,e] = fxlms(data_ref(:, i), data_main(:, i));
 
     filtered_acc(:, i) = e;
 %     filtered_acc(:, i) = data_main(:, i);
 end
 
-% gx = 0;
-% gy = 0;
-% gz = 0;
-% alpha = 0.8;
-% linear_acc = zeros(size(filtered_acc));
-% for i = 1:size(linear_acc, 1)
-%     gx = alpha*gx + (1-alpha)*filtered_acc(i, 1);
-%     gy = alpha*gy + (1-alpha)*filtered_acc(i, 2);
-%     gz = alpha*gz + (1-alpha)*filtered_acc(i, 3);
-% 
-%     linear_acc(i, 1) = filtered_acc(i, 1) - gx;
-%     linear_acc(i, 2) = filtered_acc(i, 2) - gy;
-%     linear_acc(i, 3) = filtered_acc(i, 3) - gz;
-% end
-% linear_acc_plot = linear_acc;
-linear_acc = filtered_acc(20:end, :);
-tm_movement = 0.12;
+gx = 0;
+gy = 0;
+gz = 0;
+alpha = 0.85;
+linear_acc = zeros(size(filtered_acc));
+for i = 1:size(linear_acc, 1)
+    gx = alpha*gx + (1-alpha)*filtered_acc(i, 1);
+    gy = alpha*gy + (1-alpha)*filtered_acc(i, 2);
+    gz = alpha*gz + (1-alpha)*filtered_acc(i, 3);
+
+    linear_acc(i, 1) = filtered_acc(i, 1) - gx;
+    linear_acc(i, 2) = filtered_acc(i, 2) - gy;
+    linear_acc(i, 3) = filtered_acc(i, 3) - gz;
+end
+order = 5;
+wn = 0.7;
+wn = wn/(fs_resp/2);
+[b, a] = butter(order, wn, 'low');
+linear_acc = filter(b, a, linear_acc);
+linear_acc = linear_acc(20:end, :);
+
+linear_acc_plot = linear_acc;
+tm_movement = 0.06;
 linear_acc(abs(linear_acc) > tm_movement) = NaN;
 
 coeff = pca(linear_acc);
@@ -118,7 +153,7 @@ breathing = fillmissing(breathing, "linear");
 
 % decompose signal using discrete wavelet transform
 [WT, F] = cwt(breathing, fs_resp);
-breathing = icwt(WT, [], F, [0.17 0.6], 'SignalMean', mean(breathing));
+breathing = icwt(WT, [], F, [0.15 0.43], 'SignalMean', mean(breathing));
 
 breathing = [ones(1, 19)*breathing(1) breathing];
 %% EDR
@@ -126,34 +161,6 @@ fname = sprintf("test%d.EDF", test);
 data = edfread(fname);
 fs_edr = 1000;
 ecg = cell2mat(data.ECG);
-% start_idx = 3132;  % third
-% end_idx = 59198;
-% start_idx = 4753;  % second
-% end_idx = 51036;
-% start_idx = 13941;
-% end_idx = 83699;   % first
-% start_idx = 4787;
-% end_idx = 30296;   % fifth
-% start_idx = 9511;
-% end_idx = 53829;    % six
-% start_idx = 26344;
-% end_idx = 67287;   % seven
-% start_idx = 9671;
-% end_idx = 45727;    % eight
-% start_idx = 57416;
-% end_idx = 108080;    % nine
-% start_idx = 15646;
-% end_idx = 49280;    % one
-% start_idx = 13794;
-% end_idx = 60931;    % one
-% start_idx = 9697;
-% end_idx = 56987;   % two
-% start_idx = 5104;
-% end_idx = 55905;   % three
-% start_idx = 8825;
-% end_idx = 54677;   % four
-start_idx = 14136;
-end_idx = 124579;   %five
 ecg = ecg(start_idx:end_idx);
 
 [WT, F] = cwt(ecg, fs_edr);
@@ -229,17 +236,17 @@ legend('Accelerometer', 'EDR-RSA', 'EDR-KPCA')
 title('EDR')
 xlim([0 30])
 
-figure(5)
-[S,F,T] = stft(breathing,fs_resp,'Window',hamming(256,'periodic'),'OverlapLength',240,'FrequencyRange','onesided');
-waterfall(F,T,abs(S(:,:,1))')
-xlim([0 1])
-title('STFT')
+% figure(5)
+% [S,F,T] = stft(breathing,fs_resp,'Window',hamming(256,'periodic'),'OverlapLength',240,'FrequencyRange','onesided');
+% waterfall(F,T,abs(S(:,:,1))')
+% xlim([0 1])
+% title('STFT')
 
 %% Calculate breathing rate
-S_mag = abs(S);
-S_mag(1, :) = 0;
-[~, idx] = max(S_mag, [], 1);
-for i = 1:length(idx)
-    fprintf('Time: %.2fs, Breathing rate: %.2f bpm\n', T(i), 60*F(idx(i)))
-end
+% S_mag = abs(S);
+% S_mag(1, :) = 0;
+% [~, idx] = max(S_mag, [], 1);
+% for i = 1:length(idx)
+%     fprintf('Time: %.2fs, Breathing rate: %.2f bpm\n', T(i), 60*F(idx(i)))
+% end
 
