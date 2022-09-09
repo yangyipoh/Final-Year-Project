@@ -1,24 +1,27 @@
 from matplotlib import pyplot as plt
 from scipy.ndimage import uniform_filter1d
+import pandas as pd
 
-f_wheel = open('Data/Wheel.txt')
-f_acc = open('Data/Acc.txt')
-f_brake = open('Data/Brake.txt')
-f_time = open('Data/Time.txt')
+df = pd.read_csv('steer_output.csv')
+time_data = df.iloc[:, 0].to_numpy()
+wheel_data = df.iloc[:, 1].to_numpy()
+acc_data = df.iloc[:, 2].to_numpy()
+brake_data = df.iloc[:, 3].to_numpy()
+
 
 # processing the data
 N = 7
-wheel_data = f_wheel.readlines()
-wheel_data = [float(data.strip()) for data in wheel_data]
+# wheel_data = f_wheel.readlines()
+# wheel_data = [float(data.strip()) for data in wheel_data]
 wheel_data = uniform_filter1d(wheel_data, size=N)
-acc_data = f_acc.readlines()
-acc_data = [float(data.strip()) for data in acc_data]
+# acc_data = f_acc.readlines()
+# acc_data = [float(data.strip()) for data in acc_data]
 acc_data = uniform_filter1d(acc_data, size=N)
-brake_data = f_brake.readlines()
-brake_data = [float(data.strip()) for data in brake_data]
+# brake_data = f_brake.readlines()
+# brake_data = [float(data.strip()) for data in brake_data]
 brake_data = uniform_filter1d(brake_data, size=N)
-time_data = f_time.readlines()
-time_data = [float(data.strip())/1e6 for data in time_data]
+# time_data = f_time.readlines()
+# time_data = [float(data.strip())/1e6 for data in time_data]
 
 # plotting
 # fig = plt.figure()
@@ -58,8 +61,3 @@ ax3.set_ylabel('Steering angle')
 # plt.subplot(3, 1, 3)
 # plt.plot(time_data, wheel_data)
 plt.show()
-
-f_wheel.close()
-f_acc.close()
-f_brake.close()
-f_time.close()
