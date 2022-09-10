@@ -48,6 +48,6 @@ figure(2)
 % plot(EDR_physionet(:,1),EDR_physionet(:,2)),hold on,
 % plot(EDR_ramp(:,1),EDR_ramp(:,2),'r'), hold on
 plot(EDR_RSA(:,1),EDR_RSA(:,2),'y'), hold on
-plot(EDR_KPCA(:,1),EDR_KPCA(:,2),'k'),
+% plot(EDR_KPCA(:,1),EDR_KPCA(:,2),'k'),
 legend('EDR-RSA', 'EDR-KPCA')
 xlim([0 30])
