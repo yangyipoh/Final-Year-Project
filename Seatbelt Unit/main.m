@@ -236,11 +236,11 @@ legend('Accelerometer', 'EDR-RSA', 'EDR-KPCA')
 title('EDR')
 xlim([0 30])
 
-% figure(5)
-% [S,F,T] = stft(breathing,fs_resp,'Window',hamming(256,'periodic'),'OverlapLength',240,'FrequencyRange','onesided');
-% waterfall(F,T,abs(S(:,:,1))')
-% xlim([0 1])
-% title('STFT')
+figure(5)
+[S,F,T] = stft(breathing,fs_resp,'Window',hamming(256,'periodic'),'OverlapLength',240,'FrequencyRange','onesided');
+waterfall(F,T,abs(S(:,:,1))')
+xlim([0 1])
+title('STFT')
 
 %% Calculate breathing rate
 % S_mag = abs(S);
