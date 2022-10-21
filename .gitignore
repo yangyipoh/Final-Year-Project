@@ -4,4 +4,5 @@ steering-visualisation/steer_output.csv
 blinking-rate-detection/participant 1
 blinking-rate-detection/participant 2
 blinking-rate-detection/participant 3
+blinking-rate-detection/video
 blinking-rate-detection/__pycache__

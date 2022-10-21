@@ -1,3 +1,0 @@
-Participant 1: morning --> 367, afternoon --> 487, night --> 496
-Participant 2: morning --> 316, afternoon --> 372, night --> 435
-Participant 3: morning --> 270, afternoon ==> 206, night --> 240
