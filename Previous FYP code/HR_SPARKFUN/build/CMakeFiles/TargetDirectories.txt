@@ -1,3 +1,0 @@
-/home/pi/Desktop/fyp2022/HR_SPARKFUN/build/CMakeFiles/rebuild_cache.dir
-/home/pi/Desktop/fyp2022/HR_SPARKFUN/build/CMakeFiles/edit_cache.dir
-/home/pi/Desktop/fyp2022/HR_SPARKFUN/build/CMakeFiles/TBCode.dir

@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/TBCode.dir/src/main.cpp.o CMakeFiles/TBCode.dir/src/ppg.cpp.o CMakeFiles/TBCode.dir/src/MAX30105.cpp.o CMakeFiles/TBCode.dir/src/MPU.cpp.o -o TBCode  -lwiringPi -lpthread -lpigpio -llapack 

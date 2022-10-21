@@ -1,3 +1,0 @@
-/home/pi/Desktop/fyp2022/helloworld/build/CMakeFiles/rebuild_cache.dir
-/home/pi/Desktop/fyp2022/helloworld/build/CMakeFiles/edit_cache.dir
-/home/pi/Desktop/fyp2022/helloworld/build/CMakeFiles/hello.dir
