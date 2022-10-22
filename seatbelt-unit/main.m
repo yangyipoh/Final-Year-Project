@@ -1,7 +1,7 @@
 clear; close all; clc;
 
 trial = 3;
-test = 4;  % 3,4=moving, 2,5=stationary, bumps=3,5
+test = 4;
 
 % start_idx = 3132;  % third
 % end_idx = 59198;
