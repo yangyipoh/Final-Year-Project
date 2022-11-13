@@ -1,9 +1,9 @@
-clear all; close all; clc;
+clear; close all; clc;
 
 addpath('Data\')        % --------------- Create a folder for the data --------------
 addpath('functions')
 
-data = edfread('test3\test5.EDF'); % ------ Read .EDF file (in Data folder) ---------
+data = edfread('trial3\test5.EDF'); % ------ Read .EDF file (in Data folder) ---------
 fs = 1000;
 ecg = cell2mat(data.ECG);
 

@@ -3,37 +3,11 @@ clear; close all; clc;
 trial = 3;
 test = 4;
 
-% start_idx = 3132;  % third
-% end_idx = 59198;
-% start_idx = 4753;  % second
-% end_idx = 51036;
-% start_idx = 13941;
-% end_idx = 83699;   % first
-% start_idx = 4787;
-% end_idx = 30296;   % fifth
-% start_idx = 9511;
-% end_idx = 53829;    % six
-% start_idx = 26344;
-% end_idx = 67287;   % seven
-% start_idx = 9671;
-% end_idx = 45727;    % eight
-% start_idx = 57416;
-% end_idx = 108080;    % nine
-% start_idx = 15646;
-% end_idx = 49280;    % one
-% start_idx = 13794;
-% end_idx = 60931;    % one
-% start_idx = 9697;
-% end_idx = 56987;   % two
-% start_idx = 5104;
-% end_idx = 55905;   % three
 start_idx = 8825;
-end_idx = 54677;   % four
-% start_idx = 15638;
-% end_idx = 123769;   %five
+end_idx = 54677;
 
 %% Add external path
-addpath(sprintf("Data\\test%d\\", trial));     % select trial
+addpath(sprintf("Data\\trial%d\\", trial));     % select trial
 addpath("functions\");      % adaptive filtering functions
 
 %% ACCELEROMETER -- Read data
